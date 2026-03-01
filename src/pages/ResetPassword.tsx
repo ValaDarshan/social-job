@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { EyeOff, Eye, ArrowLeft, CheckCircle2 } from 'lucide-react';
-import { confirmPasswordReset, verifyPasswordResetCode } from 'firebase/auth';
-import { getFirebaseAuth } from '../lib/firebase';
 
 export default function ResetPassword() {
   const [password, setPassword] = useState('');
@@ -28,8 +26,18 @@ export default function ResetPassword() {
       }
 
       try {
-        const auth = getFirebaseAuth();
-        await verifyPasswordResetCode(auth, oobCode);
+        const response = await fetch('http://localhost:9012/auth/verify-reset-code', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ code: oobCode }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Invalid code');
+        }
+
         setIsValidCode(true);
       } catch (err: any) {
         setIsValidCode(false);
@@ -60,8 +68,19 @@ export default function ResetPassword() {
     setIsLoading(true);
 
     try {
-      const auth = getFirebaseAuth();
-      await confirmPasswordReset(auth, oobCode, password);
+      const response = await fetch('http://localhost:9012/auth/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code: oobCode, password }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.message || 'Failed to reset password');
+      }
+
       setMessage('Password has been reset successfully.');
       setTimeout(() => {
         navigate('/login');
