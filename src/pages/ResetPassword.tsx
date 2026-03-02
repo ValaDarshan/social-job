@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { EyeOff, Eye, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { handleApiResponse } from '../services/apiService';
 
 export default function ResetPassword() {
   const [password, setPassword] = useState('');
@@ -10,43 +11,11 @@ export default function ResetPassword() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isValidCode, setIsValidCode] = useState<boolean | null>(null);
   
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const oobCode = queryParams.get('oobCode');
-
-  useEffect(() => {
-    const verifyCode = async () => {
-      if (!oobCode) {
-        setIsValidCode(false);
-        setError('Invalid or missing password reset code.');
-        return;
-      }
-
-      try {
-        const response = await fetch('http://localhost:9012/auth/verify-reset-code', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ code: oobCode }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Invalid code');
-        }
-
-        setIsValidCode(true);
-      } catch (err: any) {
-        setIsValidCode(false);
-        setError('Invalid or expired password reset code.');
-      }
-    };
-
-    verifyCode();
-  }, [oobCode]);
+  const token = queryParams.get('token');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,8 +30,8 @@ export default function ResetPassword() {
       return setError('Password must be at least 8 characters long');
     }
 
-    if (!oobCode) {
-      return setError('Invalid password reset code');
+    if (!token) {
+      return setError('Invalid or missing password reset token');
     }
 
     setIsLoading(true);
@@ -73,15 +42,12 @@ export default function ResetPassword() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ code: oobCode, password }),
+        body: JSON.stringify({ token, password }),
       });
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || 'Failed to reset password');
-      }
+      const result = await handleApiResponse(response, 'Failed to reset password');
 
-      setMessage('Password has been reset successfully.');
+      setMessage(result.message || 'Password has been reset successfully.');
       setTimeout(() => {
         navigate('/login');
       }, 3000);
@@ -121,14 +87,17 @@ export default function ResetPassword() {
           {message && (
             <div className="mb-4 p-3 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl text-green-600 dark:text-green-400 text-sm flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4" />
-              {message}
+              <div>
+                <p>{message}</p>
+                <p className="text-green-600 dark:text-green-500 text-xs mt-1">Redirecting to login page shortly...</p>
+              </div>
             </div>
           )}
 
-          {isValidCode === false && !message && (
+          {!token && !message && (
             <div className="text-center">
               <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                Please request a new password reset link.
+                Invalid or missing reset token. Please request a new password reset link.
               </p>
               <Link to="/forgot-password" className="text-blue-600 dark:text-blue-500 hover:text-blue-500 dark:hover:text-blue-400 font-medium text-sm">
                 Go to Forgot Password
@@ -136,7 +105,7 @@ export default function ResetPassword() {
             </div>
           )}
 
-          {isValidCode === true && !message && (
+          {token && !message && (
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">

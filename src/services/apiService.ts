@@ -1,5 +1,33 @@
 const BASE_URL = 'http://localhost:9012/auth';
 
+// Standard API response format: { message: string, success: boolean, data: any }
+export interface ApiResponse<T = any> {
+  message: string;
+  success: boolean;
+  data: T | null;
+}
+
+/**
+ * Parses the API response and throws an error if the request failed.
+ * Handles both HTTP errors and API-level errors (success: false).
+ */
+export async function handleApiResponse<T = any>(
+  response: Response,
+  fallbackError = 'Something went wrong'
+): Promise<ApiResponse<T>> {
+  const result: ApiResponse<T> = await response.json().catch(() => ({
+    message: fallbackError,
+    success: false,
+    data: null,
+  }));
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.message || fallbackError);
+  }
+
+  return result;
+}
+
 export const apiService = {
   async fetchWithAuth(url: string, options: RequestInit = {}) {
     let accessToken = localStorage.getItem('accessToken');
@@ -23,11 +51,10 @@ export const apiService = {
             body: JSON.stringify({ token: refreshToken }),
           });
 
-          if (refreshResponse.ok) {
-            const data = await refreshResponse.json();
-            // Assuming the response contains a new access token
-            // Adjust this based on the actual API response structure
-            const newAccessToken = data.accessToken || data.token; 
+          const refreshResult: ApiResponse = await refreshResponse.json();
+
+          if (refreshResponse.ok && refreshResult.success && refreshResult.data) {
+            const newAccessToken = refreshResult.data.accessToken || refreshResult.data.token;
             
             if (newAccessToken) {
               localStorage.setItem('accessToken', newAccessToken);
@@ -35,11 +62,10 @@ export const apiService = {
               // Retry the original request
               response = await fetch(url, { ...options, headers });
             } else {
-              // Refresh failed or no new token, logout
-              throw new Error('No new access token received');
+              throw new Error(refreshResult.message || 'No new access token received');
             }
           } else {
-            throw new Error('Refresh token expired or invalid');
+            throw new Error(refreshResult.message || 'Refresh token expired or invalid');
           }
         } catch (error) {
           console.error('Failed to refresh token:', error);

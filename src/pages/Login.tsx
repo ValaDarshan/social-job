@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Lock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { handleApiResponse } from '../services/apiService';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -28,17 +29,13 @@ export default function Login() {
         }),
       });
 
-      const data = await response.json();
+      const result = await handleApiResponse(response, 'Failed to log in');
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to log in');
-      }
-
-      if (data.accessToken && data.refreshToken) {
-        login(data.accessToken, data.refreshToken, { username });
+      if (result.data?.accessToken && result.data?.refreshToken) {
+        login(result.data.accessToken, result.data.refreshToken, { username });
         navigate('/');
       } else {
-        throw new Error('Invalid response from server');
+        throw new Error(result.message || 'Invalid response from server');
       }
     } catch (err: any) {
       setLocalError(err.message || 'Failed to log in');

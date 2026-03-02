@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { ApiResponse } from '../services/apiService';
 
 export interface User {
   username: string;
@@ -37,10 +38,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ token: refreshToken }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        // Assuming the response contains a new access token
-        const newAccessToken = data.accessToken || data.token;
+      const result: ApiResponse = await response.json();
+
+      if (response.ok && result.success && result.data) {
+        const newAccessToken = result.data.accessToken || result.data.token;
         if (newAccessToken) {
           localStorage.setItem('accessToken', newAccessToken);
           return newAccessToken;

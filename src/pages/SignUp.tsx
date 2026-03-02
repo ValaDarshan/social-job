@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User } from 'lucide-react';
+import { Mail, Lock, User, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { handleApiResponse } from '../services/apiService';
 
 export default function SignUp() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [localError, setLocalError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { error: configError, login } = useAuth();
@@ -15,6 +17,7 @@ export default function SignUp() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError('');
+    setSuccessMessage('');
     setIsLoading(true);
 
     try {
@@ -31,20 +34,19 @@ export default function SignUp() {
         }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to create an account');
-      }
+      const result = await handleApiResponse(response, 'Failed to create an account');
 
       // If the register endpoint returns tokens, we can log them in directly
-      // Assuming the response structure might contain tokens, otherwise redirect to login
-      if (data.accessToken && data.refreshToken) {
-        login(data.accessToken, data.refreshToken, { username, email });
+      if (result.data?.accessToken && result.data?.refreshToken) {
+        login(result.data.accessToken, result.data.refreshToken, { username, email });
         navigate('/');
       } else {
-        // If no tokens are returned, redirect to login page
-        navigate('/login');
+        // Show the success message (e.g. "Verification Link Send on Registered mail")
+        setSuccessMessage(result.message || 'Registration successful! Please check your email.');
+        // Redirect to login page after 4 seconds so user can read the message
+        setTimeout(() => {
+          navigate('/login');
+        }, 4000);
       }
     } catch (err: any) {
       setLocalError(err.message || 'Failed to create an account');
@@ -114,6 +116,16 @@ export default function SignUp() {
           {localError && (
             <div className="mb-4 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-red-600 dark:text-red-400 text-sm">
               {localError}
+            </div>
+          )}
+
+          {successMessage && (
+            <div className="mb-4 p-4 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl text-green-700 dark:text-green-400 text-sm flex items-start gap-3">
+              <CheckCircle2 className="w-5 h-5 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium">{successMessage}</p>
+                <p className="text-green-600 dark:text-green-500 text-xs mt-1">Redirecting to login page shortly...</p>
+              </div>
             </div>
           )}
 

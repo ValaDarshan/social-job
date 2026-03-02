@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, ArrowLeft, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { User, ArrowLeft, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { handleApiResponse } from '../services/apiService';
 
 export default function ForgotPassword() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -20,15 +21,12 @@ export default function ForgotPassword() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ username }),
       });
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || 'Failed to send reset email');
-      }
+      const result = await handleApiResponse(response, 'Failed to send reset email');
 
-      setMessage('Check your inbox for further instructions');
+      setMessage(result.message || 'Check your inbox for further instructions');
     } catch (err: any) {
       setError(err.message || 'Failed to reset password');
     } finally {
@@ -55,7 +53,7 @@ export default function ForgotPassword() {
             </div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Forgot Password?</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              No worries! Enter the email address associated with your ProStream account and we'll send you a link to reset your password.
+              No worries! Enter your username associated with your ProStream account and we'll send a reset link to your registered email.
             </p>
           </div>
 
@@ -74,23 +72,23 @@ export default function ForgotPassword() {
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-1.5">
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Email Address
+              <label htmlFor="username" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Username
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                  <User className="h-5 w-5 text-slate-400 dark:text-slate-500" />
                 </div>
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
+                  id="username"
+                  name="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  autoComplete="username"
                   required
                   className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
-                  placeholder="name@company.com"
+                  placeholder="Enter your username"
                 />
               </div>
             </div>
