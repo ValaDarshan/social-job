@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:9012/auth';
+import { API_ENDPOINTS } from '../config/api';
 
 // Standard API response format: { message: string, success: boolean, data: any }
 export interface ApiResponse<T = any> {
@@ -43,7 +43,7 @@ export const apiService = {
       const refreshToken = localStorage.getItem('refreshToken');
       if (refreshToken) {
         try {
-          const refreshResponse = await fetch(`${BASE_URL}/refresh-token`, {
+          const refreshResponse = await fetch(API_ENDPOINTS.AUTH.REFRESH_TOKEN, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

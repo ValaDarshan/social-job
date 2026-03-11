@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { handleApiResponse } from '../services/apiService';
+import { API_ENDPOINTS } from '../config/api';
 
 export default function SignUp() {
   const [username, setUsername] = useState('');
@@ -21,7 +22,7 @@ export default function SignUp() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:9012/auth/register', {
+      const response = await fetch(API_ENDPOINTS.AUTH.REGISTER, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,7 +39,7 @@ export default function SignUp() {
 
       // If the register endpoint returns tokens, we can log them in directly
       if (result.data?.accessToken && result.data?.refreshToken) {
-        login(result.data.accessToken, result.data.refreshToken, { username, email });
+        login(result.data.accessToken, result.data.refreshToken, { userId: '', username, email });
         navigate('/');
       } else {
         // Show the success message (e.g. "Verification Link Send on Registered mail")
@@ -67,11 +68,25 @@ export default function SignUp() {
         <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/40 dark:from-slate-900/90 dark:via-slate-900/40 to-transparent" />
         
         <div className="relative z-10 flex flex-col justify-between p-12 h-full w-full">
-          <div className="flex items-center gap-2 text-slate-900 dark:text-white">
-            <div className="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center">
-              <div className="w-4 h-4 bg-white rounded-sm" />
+          <div className="flex items-center">
+            {/* Light mode: icon + text */}
+            <div className="flex dark:hidden items-center gap-2">
+              <div className="w-12 h-12 shrink-0">
+                <img src="/light-mobile.png" alt="SocialJob" className="w-full h-full object-contain" />
+              </div>
+              <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                SocialJob
+              </span>
             </div>
-            <span className="font-bold text-xl tracking-tight">ProStream</span>
+            {/* Dark mode: icon + text */}
+            <div className="hidden dark:flex items-center gap-2">
+              <div className="w-12 h-12 shrink-0">
+                <img src="/dark-mobile.png" alt="SocialJob" className="w-full h-full object-contain mix-blend-screen" />
+              </div>
+              <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-pink-500 via-red-500 to-blue-500 bg-clip-text text-transparent">
+                SocialJob
+              </span>
+            </div>
           </div>
 
           <div className="max-w-md">
@@ -84,10 +99,10 @@ export default function SignUp() {
             
             <div className="flex items-center gap-4">
               <div className="flex -space-x-3">
-                <img src="https://i.pravatar.cc/100?img=4" alt="User" className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900" />
-                <img src="https://i.pravatar.cc/100?img=5" alt="User" className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900" />
-                <img src="https://i.pravatar.cc/100?img=6" alt="User" className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900" />
-                <div className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 bg-blue-600 flex items-center justify-center text-xs font-medium text-white">
+                <img src="https://i.pravatar.cc/100?img=4" alt="User" className="w-12 h-12 rounded-full border-2 border-white dark:border-slate-900" />
+                <img src="https://i.pravatar.cc/100?img=5" alt="User" className="w-12 h-12 rounded-full border-2 border-white dark:border-slate-900" />
+                <img src="https://i.pravatar.cc/100?img=6" alt="User" className="w-12 h-12 rounded-full border-2 border-white dark:border-slate-900" />
+                <div className="w-12 h-12 rounded-full border-2 border-white dark:border-slate-900 bg-blue-600 flex items-center justify-center text-xs font-medium text-white">
                   +99
                 </div>
               </div>
@@ -182,7 +197,7 @@ export default function SignUp() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
-                  placeholder="jane@prostream.com"
+                  placeholder="jane@socialjob.com"
                 />
               </div>
             </div>
@@ -232,7 +247,7 @@ export default function SignUp() {
           </form>
 
           <div className="mt-12 text-center text-xs text-slate-500">
-            <p>© 2024 ProStream Inc. All rights reserved.</p>
+            <p>© 2024 SocialJob. All rights reserved.</p>
           </div>
         </div>
       </div>

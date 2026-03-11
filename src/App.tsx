@@ -16,6 +16,7 @@ import Home from './pages/Home';
 import Explore from './pages/Explore';
 import Profile from './pages/Profile';
 import Projects from './pages/Projects';
+import Network from './pages/Network';
 import Settings from './pages/Settings';
 
 export default function App() {
@@ -33,7 +34,9 @@ export default function App() {
               
               <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
               <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+              <Route path="/network" element={<ProtectedRoute><Network /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/profile/:userId" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               

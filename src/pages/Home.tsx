@@ -171,7 +171,7 @@ export default function Home() {
           <div className="flex gap-4">
             <a href="#" className="hover:text-slate-600 dark:hover:text-slate-300">Privacy & Terms</a>
           </div>
-          <p className="pt-2">© 2024 ProStream Inc.</p>
+          <p className="pt-2">© 2024 SocialJob.</p>
         </div>
       </aside>
     </div>

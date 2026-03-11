@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { EyeOff, Eye, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { handleApiResponse } from '../services/apiService';
+import { API_ENDPOINTS } from '../config/api';
 
 export default function ResetPassword() {
   const [password, setPassword] = useState('');
@@ -37,7 +38,7 @@ export default function ResetPassword() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:9012/auth/reset-password', {
+      const response = await fetch(API_ENDPOINTS.AUTH.RESET_PASSWORD, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,11 +63,23 @@ export default function ResetPassword() {
     <div className="min-h-screen bg-slate-50 dark:bg-[#0F172A] flex flex-col justify-center py-12 sm:px-6 lg:px-8 transition-colors duration-200">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center mb-8">
-          <div className="flex items-center gap-2 text-slate-900 dark:text-white">
-            <div className="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center">
-              <div className="w-4 h-4 bg-white rounded-sm" />
+          {/* Light mode: icon + text */}
+          <div className="flex dark:hidden items-center gap-2">
+            <div className="w-12 h-12 shrink-0">
+              <img src="/light-mobile.png" alt="SocialJob" className="w-full h-full object-contain" />
             </div>
-            <span className="font-bold text-xl tracking-tight">ProStream</span>
+            <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              SocialJob
+            </span>
+          </div>
+          {/* Dark mode: icon + text */}
+          <div className="hidden dark:flex items-center gap-2">
+            <div className="w-12 h-12 shrink-0">
+              <img src="/dark-mobile.png" alt="SocialJob" className="w-full h-full object-contain mix-blend-screen" />
+            </div>
+            <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-pink-500 via-red-500 to-blue-500 bg-clip-text text-transparent">
+              SocialJob
+            </span>
           </div>
         </div>
 

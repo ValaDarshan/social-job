@@ -1,9 +1,28 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { ApiResponse } from '../services/apiService';
+import { API_ENDPOINTS } from '../config/api';
 
 export interface User {
+  userId: string;
   username: string;
   email?: string;
+}
+
+/** Decode a JWT payload without a library */
+function parseJwt(token: string): Record<string, any> | null {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
 }
 
 interface AuthContextType {
@@ -11,7 +30,7 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   login: (token: string, refreshToken: string, user: User) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshAccessToken: () => Promise<string | null>;
 }
 
@@ -30,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const response = await fetch('http://localhost:9012/auth/refresh-token', {
+      const response = await fetch(API_ENDPOINTS.AUTH.REFRESH_TOKEN, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,7 +83,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     if (token && userStr) {
       try {
-        setCurrentUser(JSON.parse(userStr));
+        const user: User = JSON.parse(userStr);
+        // Backfill userId from JWT if missing (for users who logged in before this change)
+        if (!user.userId && token) {
+          const payload = parseJwt(token);
+          if (payload?.['user-id']) {
+            user.userId = payload['user-id'];
+            localStorage.setItem('user', JSON.stringify(user));
+          }
+        }
+        setCurrentUser(user);
       } catch (e) {
         console.error("Failed to parse user from local storage", e);
       }
@@ -73,13 +101,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = (token: string, refreshToken: string, user: User) => {
+    // Extract userId from JWT if not already present
+    if (!user.userId) {
+      const payload = parseJwt(token);
+      if (payload?.['user-id']) {
+        user.userId = payload['user-id'];
+      }
+    }
     localStorage.setItem('accessToken', token);
     localStorage.setItem('refreshToken', refreshToken);
     localStorage.setItem('user', JSON.stringify(user));
     setCurrentUser(user);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    
+    // Call backend logout to revoke the current session
+    if (accessToken) {
+      try {
+        await fetch(API_ENDPOINTS.AUTH.LOGOUT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+      } catch (err) {
+        console.error('Failed to call logout API:', err);
+      }
+    }
+
+    // Always clear local storage regardless of API result
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');

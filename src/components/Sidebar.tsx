@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Compass, Users, MessageSquare, User, PlusCircle, LogOut, Settings } from 'lucide-react';
+import { Home, Users, User, PlusCircle, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Sidebar() {
@@ -8,16 +8,39 @@ export default function Sidebar() {
 
   const navItems = [
     { name: 'Home', path: '/', icon: Home },
-    { name: 'Explore', path: '/explore', icon: Compass },
     { name: 'Network', path: '/network', icon: Users },
-    { name: 'Messages', path: '/projects', icon: MessageSquare, badge: 3 },
     { name: 'Profile', path: '/profile', icon: User },
     { name: 'Settings', path: '/settings', icon: Settings },
   ];
 
   return (
     <div className="w-64 h-screen bg-white dark:bg-[#0F172A] border-r border-slate-200 dark:border-slate-800 flex flex-col fixed left-0 top-0 transition-colors duration-200">
-      <div className="p-6 flex items-center gap-3">
+      {/* Logo */}
+      <div className="px-6 pt-5 pb-3">
+        <Link to="/" className="flex items-center">
+          {/* Light mode: icon + text */}
+          <div className="flex dark:hidden items-center gap-2">
+            <div className="w-12 h-12 shrink-0">
+              <img src="/light-mobile.png" alt="SocialJob" className="w-full h-full object-contain" />
+            </div>
+            <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              SocialJob
+            </span>
+          </div>
+          {/* Dark mode: icon + text */}
+          <div className="hidden dark:flex items-center gap-2">
+            <div className="w-12 h-12 shrink-0">
+              <img src="/dark-mobile.png" alt="SocialJob" className="w-full h-full object-contain mix-blend-screen" />
+            </div>
+            <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-pink-500 via-red-500 to-blue-500 bg-clip-text text-transparent">
+              SocialJob
+            </span>
+          </div>
+        </Link>
+      </div>
+
+      {/* User info */}
+      <div className="px-6 pb-4 flex items-center gap-3">
         <img src="https://i.pravatar.cc/150?img=32" alt="User" className="w-10 h-10 rounded-full border-2 border-blue-500" />
         <div>
           <h3 className="font-semibold text-slate-900 dark:text-white text-sm">{currentUser?.username || 'Alex Morgan'}</h3>
@@ -41,11 +64,6 @@ export default function Sidebar() {
                 <Icon className="w-5 h-5" />
                 <span className="font-medium text-sm">{item.name}</span>
               </div>
-              {item.badge && (
-                <span className="bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                  {item.badge}
-                </span>
-              )}
             </Link>
           );
         })}
